@@ -1,14 +1,15 @@
 # 13459 구슬 탈출 
 from sys import stdin
 import sys
+sys.setrecursionlimit(10**5)
 def escape(red, blue, cnt, before):
     if cnt >= 10:
         return
     for k in range(4):
-        x, y = red
-        i, j = blue
-        a, b, c, d = x, y, i, j
         if k != before:
+            x, y = red
+            i, j = blue
+            a, b, c, d = x, y, i, j
             rflag, bflag = False, False
             while(1):
                 nx, ny = x+dx[k], y +dy[k]
