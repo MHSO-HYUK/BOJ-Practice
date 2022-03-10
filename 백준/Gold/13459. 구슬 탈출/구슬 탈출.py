@@ -7,18 +7,8 @@ def escape(red, blue, cnt, before):
     for k in range(4):
         x, y = red
         i, j = blue
+        a, b, c, d = x, y, i, j
         if k != before:
-            if x == i: 
-                if k == 2: # 우
-                    s = True if y > j else False
-                if k == 3:
-                    s = True if y < j else False
-            if y == j:
-                if k == 0:
-                    s = True if x > i else False
-                if k == 1:
-                    s = True if x < i else False
-            
             rflag, bflag = False, False
             while(1):
                 nx, ny = x+dx[k], y +dy[k]
@@ -46,6 +36,17 @@ def escape(red, blue, cnt, before):
             
             elif (not rflag) and (not bflag):
                 if [x, y] == [i, j]:
+                    if a == c: 
+                        if k == 2: # 우
+                            s = True if b > d else False
+                        if k == 3:
+                            s = True if b < d else False
+                    if b == d:
+                        if k == 0:
+                            s = True if a > c else False
+                        if k == 1:
+                            s = True if a < c else False
+                    
                     if s :
                         escape([x, y], [i-dx[k], j-dy[k]], cnt+1, k)
                     else:
