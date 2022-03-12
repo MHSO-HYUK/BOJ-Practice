@@ -13,10 +13,10 @@ def baseball(rnd, s, score):
     global temp, maxima
     if rnd == n:
         maxima = max(maxima, score)
+        if maxima == 24*n:
+            print(maxima)
+            sys.exit()
         return
-    if maxima == 24*n:
-        print(maxima)
-        sys.exit()
     out, sc, b0, b1, b2 = 0, 0, 0, 0, 0
     while(1):
         s = s % 9
