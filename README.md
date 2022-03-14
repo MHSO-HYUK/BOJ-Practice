@@ -1,4 +1,4 @@
-# Algorithm Practice
+# Algorithm Practice (by. MHSO)
 
 DFS // BFS // DP // Brute Force // Greedy // etc...
 
