@@ -11,10 +11,14 @@ def bfs(tg, tr):
 # 모든 배양액을 남김없이 사용해야 하고 모든 배양액은 서로 다른 곳에 뿌려야
     flower = [[0] * m for _ in range(n)]
     used = [[0] * m for _ in range(n)]
+
+    temp = 0
     for a, b in tg:
         used[a][b] = 1
+        temp += 1
     for a, b in tr:
         used[a][b] = 1
+        temp += 1
 
     queue = deque()
     queue.append([tg, tr])
@@ -28,6 +32,7 @@ def bfs(tg, tr):
                 ga, gb = a + dx[k], b + dy[k]
                 if 0 <= ga <= n-1 and 0 <= gb <= m-1:
                     if maps[ga][gb] != 0 and check[ga][gb] == 0 and not used[ga][gb]:
+                        temp += 1
                         check[ga][gb] = 1
                         used[ga][gb] = 1
                         tempg.append([ga, gb])
@@ -38,6 +43,7 @@ def bfs(tg, tr):
                 ra, rb = a + dx[k], b + dy[k]
                 if 0 <= ra <= n-1 and 0 <= rb <= m-1:
                     if maps[ra][rb] != 0 and check[ra][rb] == 0 and not used[ra][rb]:
+                        temp += 1
                         check[ra][rb] = 2
                         used[ra][rb] = 1
                         tempr.append([ra, rb])
@@ -50,6 +56,8 @@ def bfs(tg, tr):
         if not tempg or not tempr: # 더 이상 퍼져나갈 땅이 없는 경우
             maxima = max(maxima, cnt)
             return
+        elif sq - temp < maxima - cnt:
+            return
         else:
             queue.append([tempg, tempr])
 
@@ -57,10 +65,13 @@ n, m, g, r = map(int, stdin.readline().split())
 maps = list(list(map(int, stdin.readline().split())) for _ in range(n))
 
 can = []
+sq = 0
 for i in range(n):
     for j in range(m):
         if maps[i][j] == 2:
             can.append([i, j]) # 뿌릴 수 있는 땅 리스트
+        if maps[i][j]:
+            sq += 1
 maxima = 0
 dx, dy = (1, -1, 0, 0), (0, 0, 1, -1)
 for green in combinations(can, g):
