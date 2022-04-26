@@ -1,20 +1,14 @@
-# 13458 시험감독
-# 총감독 b명 관찰 // 부감독 c명 관찰
-# 총감독은 방에 1명 // 부김독은  방에 여러명  
-from sys import stdin 
-
-n = int(stdin.readline()) #시험장의 갯수
-a = list(map(int, stdin.readline().split())) # 각 시험장에 있는 응시자 수
+# 13458 시험 감독
+# 한 방에 총감독은 1명만 + 부감독은 여러명
+from sys import stdin
+n = int(stdin.readline())
+a = list(map(int, stdin.readline().split()))
 b, c = map(int, stdin.readline().split())
-ans = 0
-for i in range(n):
-    temp = 0
-    a[i] -= b
-    if a[i] <= 0: ans += 1
-    else:
-        temp = 1
-        if a[i] % c: temp += a[i] //  c + 1
-        else: temp += a[i] // c
-        ans += temp
-
-print(ans)
+total = len(a)
+for human in a:
+    temp = human - b
+    if temp > 0:
+        total += temp // c
+        if temp % c:
+            total += 1
+print(total)
