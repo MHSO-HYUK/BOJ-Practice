@@ -1,85 +1,80 @@
 # 13460 구슬 탈출 2
+# 빨간 색만 넣고 파란 색은 안 넣은 방향으로 
 from sys import stdin
-import sys
-sys.setrecursionlimit(10**5)
-def move(cnt, red, blue, before):
-    global ans
-    if cnt > 9 or cnt > ans: #답보다 낮은 케이스는 그냥 없어져도 됌
+dx, dy = [1, -1, 0 , 0], [0, 0, 1, -1]
+def escape(red, blue, cnt, before):
+    global minima 
+    #네 방향 중 하나로 기울인다. 
+    if cnt >= minima or cnt > 10: # 최소 이동 횟수보다 크거나 같은 경우에는 멈춘다
         return
-
+    
     for k in range(4):
-        if k != before: # 두번 연속 같은 방향으로 기울이지 못하도록 (의미 없음)
-            s = True
-            x, y = red
-            p, q = blue
-            if k == 0: # 하
-                if y == q: # y 좌표가 같다면 -> 밑으로 떨어질 때 원래 밑에 있던게 더 먼저 도착
-                    s = True if x > p else False # R가 B보다 앞에 있으면 True
-            elif k == 1: # 상
-                if y == q:
-                    s = True if x < p else False
-            elif k == 2: # 우
-                if x == p: # x 좌표가 같다면 -> 원래 오른쪽에 있던 게 더 먼저 도착
-                    s = True if y > q else False
-            elif k == 3: # 좌
-                if x == p:
-                    s = True if y < q else False
-
-            rflag, bflag = False, False
-            while(1): # 빨간 구슬의 이동
-                rx, ry = x + dx[k], y + dy[k]
-                if maps[rx][ry] == '#':
+        rflag, bflag = False, False # 들어갔는지 여부를 체크하는 플레그
+        rmove, bmove = 0, 0 # 이동 거리를 체크하는 플레그
+        x, y = red
+        a, b = blue
+        if k != before: # 똑같은 방향으로 두번 연속 기울이는 것은 의미가 없음
+            while(1):
+                nx, ny = x+dx[k], y+dy[k]
+                if maps[nx][ny] == '#': # 구슬이 벽에 부딫히면 이동 종료
                     break
-                if maps[rx][ry] == 'O':
+                rmove += 1
+                if maps[nx][ny] == 'O': # 구슬이 구멍에 빠지면 이동 종료
                     rflag = True
                     break
                 else:
-                    x, y = rx, ry
-
-            while(1): # 파란 구슬의 이동
-                bx, by = p + dx[k], q + dy[k]
-                if maps[bx][by] == '#':
+                    x, y = nx, ny # 둘다 아니라면 한번 더 이동하기
+                
+            while(1):
+                na, nb = a+dx[k], b+dy[k]
+                if maps[na][nb] == '#': # 구슬이 벽에 부딫히면 이동 종료
                     break
-                if maps[bx][by] == 'O':
+                bmove += 1
+                if maps[na][nb] == 'O': # 구슬이 구멍에 빠지면 이동 종료
                     bflag = True
                     break
                 else:
-                    p, q = bx, by
+                    a, b = na, nb # 둘다 아니라면 한번 더 이동하기
 
+            if rflag and not bflag: # 종료 조건 만족시
+                minima = min(minima, cnt)
 
-            if rflag and not bflag: # 정상적인 종료 케이스
-                ans = min(ans, cnt+1)
-                continue
-
-            elif (rflag and bflag) or (not rflag and bflag): #에러가 난 케이스
-                continue
-
-            else:
-                if [x, y] == [p, q]: # 겹쳐 버림
-                    if s: # R이 먼저 도착
-                        move(cnt+1, [x, y], [p - dx[k], q - dy[k]], k)
+            elif not rflag and not bflag: # 종료 조건 만족 X 시
+                if [x, y] == [a, b]: # 두 구슬이 겹친 경우
+                    if rmove < bmove: # 더 많이 이동한 구슬이 늦게 온 것 
+                        a, b = a-dx[k], b-dy[k]
                     else:
-                        move(cnt+1, [x - dx[k], y - dy[k]], [p, q], k)
-
+                        x, y = x-dx[k], y-dy[k]
+                    if visit[x][y][a][b] > cnt:
+                        visit[x][y][a][b] = cnt
+                        escape([x, y], [a, b], cnt+1, k)
                 else:
-                    move(cnt+1, [x, y], [p, q], k)
-
+                    if visit[x][y][a][b] > cnt:
+                        visit[x][y][a][b] = cnt
+                        escape([x, y], [a, b], cnt+1, k)
+            else:
+                continue
 
 n, m = map(int, stdin.readline().split())
-maps = list(list(stdin.readline().rstrip()) for _ in range(n))
-dx, dy = [1, -1, 0 ,0], [0, 0, 1, -1]
+maps = []
 for i in range(n):
+    temp = list(stdin.readline().rstrip())
     for j in range(m):
-        if maps[i][j] == 'R':
+        if temp[j] == 'R':
             red = [i, j]
-        if maps[i][j] == 'B':
+            temp[j] = '.'
+        if temp[j] == 'B':
             blue = [i, j]
-
-
-
-ans = 10**10
-move(0, red, blue, 10)
-if ans == 10**10:
+            temp[j] = '.'
+    maps.append(temp)
+    
+minima = 10**10
+visit = [[[[10**10 for _ in range(m)] for _ in range(n)] for _ in range(m)] for _ in range(n)]
+x, y = red
+a, b = blue
+visit[x][y][a][b] = 0
+escape(red, blue, 1, -1)
+if minima > 10:
     print(-1)
 else:
-    print(ans)
+    print(minima)
