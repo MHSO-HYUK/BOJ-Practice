@@ -1,42 +1,39 @@
+# 14503 로봇 청소기
+# 1 현 위치 청소
+# 2 - a 현 위치 바로 왼쪽에 청소 안한 빈 곳이 존재시 왼쪽으로 회전 후 한칸 이동 후 정지 (1로 돌아감)
+# 그렇지 않을 경우 왼쪽으로 회전 
+# 2 - b // 2-a가 연속 네번 실행되었을 경우, 바로 뒤가 벽이라면 작동을 멈춤 + 그렇지 않다면 한 칸 후진  
+from sys import stdin
 import sys
-input = sys.stdin.readline
-
-n, m = map(int, input().split())
-r, c, d = map(int, input().split())
-maps = []
-for _ in range(n):
-  maps.append(list(map(int, input().split()))) # 0 빈칸, 1 벽, 2 청소기or청소한곳
-possible = True
-dx = [-1, 0, 1, 0] # d= 0 북쪽, 1 동쪽, 2 남쪽, 3 서쪽
-dy = [0, 1, 0, -1]
-
-maps[r][c] = 2
-x, y = r, c
-while True:
-  cleans = False # 왼쪽 청소 했는지?
-  for i in range(4): # 왼쪽 청소하기
-    nx = x + dx[(d+3-i)%4]
-    ny = y + dy[(d+3-i)%4]
-    if maps[nx][ny] == 0: # 왼쪽에 청소가 된다면
-      x, y = nx, ny
-      d = (d+3-i)%4
-      maps[x][y] = 2
-      cleans = True
-      break
-  if cleans: # 왼쪽 청소했음
-    continue
-  nx = x + dx[(d+2)%4] # 네방향 모두 청소못한경우 뒤로 후진
-  ny = y + dy[(d+2)%4]
-  if maps[nx][ny] == 1: # 뒤가 벽이라면 
-    possible = False
-  else:
-    x, y = nx, ny # 벽이 아니면
-  if not possible:
-      break
-      
-count = 0
-for i in range(n):
-  for j in range(m):
-    if maps[i][j] == 2:
-      count += 1
-print(count)
+n, m = map(int, stdin.readline().split())
+r, c, d = map(int, stdin.readline().split())
+dx, dy = [-1, 0, 1, 0], [0, 1, 0, -1] # 상 우 하 좌
+maps = [list(map(int, stdin.readline().split())) for _ in range(n)]
+visit = [[0 for _ in range(m)] for _ in range(n)]
+ans = 0
+while(1):
+    # 현위치 청소
+    if not visit[r][c]:
+        ans += 1
+    visit[r][c] = ans
+    flag4 = 0
+    while(1):
+        flag4 += 1
+        if flag4 > 4:
+            nr, nc = r - dx[d], c-dy[d]
+            if maps[nr][nc] == 1:
+                print(ans)
+                sys.exit()
+            else:
+                r, c = nr, nc
+                break
+        new_d = d-1
+        if new_d < 0:
+            new_d = 3
+        nr, nc = r+dx[new_d], c+dy[new_d]
+        if maps[nr][nc] == 0 and not visit[nr][nc]:
+            d = new_d # 왼쪽으로 회전
+            r, c = nr, nc
+            break
+        else:
+            d = new_d # 왼쪽으로 회전
