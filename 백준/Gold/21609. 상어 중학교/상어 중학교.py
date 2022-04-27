@@ -1,139 +1,99 @@
 # 21609 상어 중학교
-# 검정 (-1) / 무지개 (0) / 일반 (1~m)
-# 그룹에는 적어도 하나의 일반 블록 + 색이 모두 같아야
-# 검은색은 없어야 하고 무지개는 얼마든지 
-# 그룹은 2개 이상 
-
-# 그룹 형성 (없으면 끝)
-# 기준 블록은 무지개가 아닌 것 중에 행이 작거나 열이 작은거
-# 크기 -> 무지개가 많은 그룹 -> 기준 블록 행 큰 거 -> 열 큰 거
-
-
-# 터트림
-# 중력
-# 반시계 회전 
-# 중력
 from sys import stdin
-import heapq
 from collections import deque
-def rotation(maps):
-    n = len(maps)
-    nmaps = []
-    for j in range(n-1, -1, -1):
-        temp = []
-        for i in range(n):
-            temp.append(maps[i][j])
-        nmaps.append(temp)
-    return nmaps
-
-
-def gravity(maps): # 검은색을 제외하고 떨어짐
-    n = len(maps)
+import heapq
+def gravity(new_maps):
     for i in range(n-1, -1, -1):
-        for j in range(n-1, -1, -1):
-            if maps[i][j] == -2: # 빈칸 발견 
-                for k in range(i-1, -1, -1): # 그 위에 대하여 
-                    if maps[k][j] == -1:
-                        break
-                        
-                    elif maps[k][j] != -2:
-                        p = k
-                        while(1):
-                            if p+1 <= n-1 and maps[p+1][j] == -2:
-                                maps[p+1][j], maps[p][j] = maps[p][j], -2
-                                p += 1
-                            else:
-                                break
-    return maps
+        for j in range(n):
+            if new_maps[i][j] != -1 and new_maps[i][j] != -2: # 검정 혹은 빈칸이 아닌 경우
+                x = i + 1
+                while(1):
+                    if x < n and new_maps[x][j] == -2: # 격자 내부이고 블록이 없는 경우
+                        x += 1 # 하강 
+                    else: # 바닥에 부딫히거나 블록이 있는 경우
+                        break # 정지
+                x -= 1
+                new_maps[x][j], new_maps[i][j] = new_maps[i][j], new_maps[x][j]
+    return new_maps
 
-def group(x, y, maps, color):
-    global temp
-    global gvisit
-    queue = deque([[x, y]])
-    visit = [[0]*n for _ in range(n)]
-    visit[x][y] = 1
-    gvisit[x][y] = 1
-    color_cnt = 0
-    block_cnt = 1
-    while(queue):
-        i, j = queue.popleft()
-        for k in range(4):
-            a, b = i+dx[k], j+dy[k]
-            if 0<=a<=n-1 and 0<=b <= n-1:
-                if not visit[a][b]:
-                    if maps[a][b] == color: # 같은 색상
-                        visit[a][b] = 1
-                        gvisit[a][b] = 1
-                        block_cnt += 1
-                        queue.append([a, b])
-                    if maps[a][b] == 0: # 무지개
-                        visit[a][b] = 1
-                        color_cnt += 1
-                        block_cnt += 1
-                        queue.append([a, b])
-
-    if block_cnt > 1:
-        flag = False
+def rotate(new_maps):
+    ret_maps = []
+    for j in range(n-1, -1, -1):
+        cache = []
         for i in range(n):
-            if not flag:
-                for j in range(n):
-                    if visit[i][j] and maps[i][j] == color:
-                        a, b= i, j
-                        flag = True
-                        break
-        heapq.heappush(temp, [-block_cnt, -color_cnt, -a, -b])
-                        
+            cache.append(maps[i][j])
+        ret_maps.append(cache)
+    return ret_maps
     
-def bang(x, y, maps, color):
-    score = 0
-    queue = deque([[x, y]])
-    visit = [[0]*n for _ in range(n)]
-    visit[x][y] = 1
+    
+def find_group(x, y):
+    # 그룹에는 일반 블록이 하나 이상 있어야 하며 색이 모두 같아야 한다.
+    # 검정 블록은 포함되면 안되고 무지개는 얼마든지 있어도 된다. 
+    # 그룹의 블록은 2개 이상 
+    # 블록 그룹의 기준 블록은 무지개 블록이 아닌 블록 중 행의 번호, 열의 번호 작은 순
+    # 1. 크기가 가장 큰 블록 그룹을 찾는다. 그러한 블록 그룹이 여러개 라면 포함된 
+    #무지개 블록수가 가장 많은 그룹 > 기준 블록의 행이 가장 큰 것 > 기준 블록의 열이 가장 큰 것
+    queue = deque()
+    rainbow, lr, lc = 0, x, y
+    check = [[0 for _ in range(n)] for _ in range(n)]
+    visit[x][y], check[x][y] = 1, 1
+    color = maps[x][y]
+    queue.append([x, y])
+    cache = []
+    cnt = 0
     while(queue):
-        i, j = queue.popleft()
+        x, y = queue.popleft()
+        cache.append([x, y])
+        cnt += 1
         for k in range(4):
-            a, b = i+dx[k], j+dy[k]
-            if 0<=a<=n-1 and 0<=b <= n-1:
-                if not visit[a][b]:
-                    if maps[a][b] == color: # 같은 색상
-                        visit[a][b] = 1
-                        queue.append([a, b])
-                    if maps[a][b] == 0: # 무지개
-                        visit[a][b] = 1
-                        queue.append([a, b])
-               
-    for i in range(n):
-        for j in range(n):
-            if visit[i][j]:
-                score += 1
-                maps[i][j] = -2
-    return maps, score**2
-
-
+            nx, ny = x+dx[k], y+dy[k]
+            if 0 <= nx <= n-1 and 0 <= ny  <= n-1:
+                if not check[nx][ny]:
+                    if maps[nx][ny] == 0: # 인접한 무지개 블록
+                        check[nx][ny] = 1
+                        rainbow += 1
+                        queue.append([nx, ny])
+                    elif maps[nx][ny] == color: # 인접한 동일 색깔 블록 
+                        lr = min(lr, nx)
+                        lc = min(lc, ny)
+                        visit[nx][ny], check[nx][ny] = 1, 1
+                        queue.append([nx, ny])
+    
+    return [-cnt, -rainbow, -lr, -lc, cache]
+    
 n, m = map(int, stdin.readline().split())
-maps = [list(map(int, stdin.readline().split())) for _ in range(n)]
-t = 0
-dx, dy = [1, -1, 0, 0], [0, 0, 1, -1]
-ans = 0
+maps = list(list(map(int, stdin.readline().split())) for _ in range(n))
+dx, dy = [1, -1, 0 ,0], [0, 0, 1, -1]
+# 검정 -1 무지개 0 일반 1 ~ M // 빈칸 -2 로 정의! 
+# 그룹에는 일반 블록이 하나 이상 있어야 하며 색이 모두 같아야 한다.
+# 검정 블록은 포함되면 안되고 무지개는 얼마든지 있어도 된다. 
+# 그룹의 블록은 2개 이상 
+# 블록 그룹의 기준 블록은 무지개 블록이 아닌 블록 중 행의 번호, 열의 번호 작은 순
+score = 0
 while(1):
-    temp = []
-    gvisit = [[0]*n for _ in range(n)]
+    heap = []
+    visit = [[0 for _ in range(n)] for _ in range(n)]
+    # 1. 크기가 가장 큰 블록 그룹을 찾는다. 그러한 블록 그룹이 여러개 라면 포함된 
+    #무지개 블록수가 가장 많은 그룹 > 기준 블록의 행이 가장 큰 것 > 기준 블록의 열이 가장 큰 것
     for i in range(n):
         for j in range(n):
-            if 1 <= maps[i][j] <= m and not gvisit[i][j]:
-                group(i, j, maps, maps[i][j])
-                
-    if not temp:
+            if not visit[i][j] and 1 <= maps[i][j]:
+                cnt, rainbow, lr, lc, cache = find_group(i, j)
+                if -cnt >= 2:
+                    heapq.heappush(heap, [cnt, rainbow, lr, lc, cache])
+
+    if heap:
+        cnt, rainbow, lr, lc, cache = heapq.heappop(heap)
+    else:
         break
-
-    a, b, c, d = heapq.heappop(temp)
-    maps, t = bang(-c, -d, maps, maps[-c][-d])
-
-    ans += t
-    maps = gravity(maps)  
-
-    maps = rotation(maps)
-
+# 2. 1에서 찾은 블록 그룹 제거 -> 블록수^2 획득
+    for a, b in cache:
+        maps[a][b] = -2
+    score += cnt**2
+# 3. 중력 작용
     maps = gravity(maps)
-
-print(ans)
+# 4. 90도 반시계 회전
+    maps = rotate(maps)
+# 5.  중력 작용
+    maps = gravity(maps)
+print(score)
