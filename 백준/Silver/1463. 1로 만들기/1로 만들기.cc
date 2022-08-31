@@ -17,20 +17,25 @@ long long solution(long long n) {
 		연산 최솟값을 구하라
 	*/
 	queue <pair<int, int>> q;
+	vector <int> visit(pow(10, 6)+1);
 	q.push({ n, 0 });
+	visit[n] = 1;
 	while (!q.empty()) {
 		long now = q.front().first;
 		long cnt = q.front().second;
 		q.pop();
 		if (now == 1) return cnt;
 		else {
-			if (now % 3 == 0) {
+			if (now % 3 == 0 && visit[now/3] == 0) {
+				visit[now / 3] = 1;
 				q.push({ now / 3, cnt + 1 });
 			}
-			if (now % 2 == 0) {
+			if (now % 2 == 0 && visit[now/2] == 0) {
+				visit[now / 2] = 1;
 				q.push({ now / 2, cnt + 1 });
 			}
-			if (now - 1 > 0) {
+			if (now - 1 > 0 && visit[now-1] == 0) {
+				visit[now - 1] = 1;
 				q.push({ now - 1, cnt + 1 });
 			}
 		}
